@@ -1,0 +1,21 @@
+name: Notify Slack on PR Cancel
+
+on:
+  pull_request:
+    types: [closed] # Chỉ bắt sự kiện khi PR bị đóng (dù merge hay huỷ)
+
+jobs:
+  slack_notify_cancel:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Gửi thông báo lên Slack khi PR bị HUỶ
+        if: ${{ github.event.pull_request.merged == false }}
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          TEXT=":x: *Pull Request đã bị HUỶ!*\n🔖 ${PR_TITLE}\n🔗 ${PR_URL}\n👤 Người huỷ: ${ACTOR}"
+          curl -X POST -H 'Content-type: application/json' \
+          --data "{\"text\":\"${TEXT}\"}" $SLACK_WEBHOOK
